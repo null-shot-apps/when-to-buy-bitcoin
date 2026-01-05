@@ -93,50 +93,50 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="pt-20 pb-12 px-6">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-5xl md:text-6xl font-light text-gray-900 tracking-tight text-center mb-4">
+      <header className="pt-8 pb-6 px-4">
+        <div className="max-w-6xl mx-auto">
+          <h1 className="text-3xl md:text-4xl font-light text-gray-900 tracking-tight text-center mb-1">
             When to Buy Bitcoin
           </h1>
-          <p className="text-lg text-gray-500 text-center font-light">
+          <p className="text-sm text-gray-500 text-center font-light">
             Historical best buying opportunities since 2009
           </p>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="px-6 pb-24">
-        <div className="max-w-4xl mx-auto">
+      <main className="px-4 pb-8">
+        <div className="max-w-6xl mx-auto">
           {/* Year Grid with Inline Details */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-4 md:grid-cols-8 gap-2">
             {bitcoinData.map((yearData) => (
-              <div key={yearData.year} className="col-span-2 md:col-span-4">
+              <div key={yearData.year} className="col-span-4 md:col-span-8">
                 <button
                   onClick={() => setSelectedYear(selectedYear === yearData.year ? null : yearData.year)}
-                  className={`w-full py-6 px-4 border transition-all duration-200 ${
+                  className={`w-full py-3 px-3 border transition-all duration-200 ${
                     selectedYear === yearData.year
                       ? 'border-gray-900 bg-gray-50'
                       : 'border-gray-200 hover:border-gray-400'
                   }`}
                 >
-                  <span className="text-2xl font-light text-gray-900">{yearData.year}</span>
+                  <span className="text-lg font-light text-gray-900">{yearData.year}</span>
                 </button>
                 
                 {/* Inline Details */}
                 {selectedYear === yearData.year && (
-                  <div className="mt-4 mb-8 animate-fadeIn">
-                    <div className="space-y-4">
+                  <div className="mt-2 mb-3 animate-fadeIn">
+                    <div className="space-y-2">
                       {yearData.dates.map((dateInfo, index) => (
                         <div
                           key={index}
-                          className="flex items-center justify-between py-6 px-6 border border-gray-200 bg-white"
+                          className="flex items-center justify-between py-3 px-4 border border-gray-200 bg-white"
                         >
-                          <div className="flex items-center gap-6">
-                            <span className="text-3xl font-light text-gray-300 w-8">
+                          <div className="flex items-center gap-4">
+                            <span className="text-xl font-light text-gray-300 w-5">
                               {index + 1}
                             </span>
                             <div>
-                              <div className="text-xl font-light text-gray-900">
+                              <div className="text-base font-light text-gray-900">
                                 {dateInfo.date}
                               </div>
                               <div className="text-xs text-gray-500 font-light">
@@ -145,7 +145,7 @@ export default function Landing() {
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="text-2xl font-light text-gray-900">
+                            <div className="text-lg font-light text-gray-900">
                               ${dateInfo.price.toLocaleString('en-US', {
                                 minimumFractionDigits: dateInfo.price < 1 ? 5 : 2,
                                 maximumFractionDigits: dateInfo.price < 1 ? 5 : 2,
@@ -168,5 +168,6 @@ export default function Landing() {
     </div>
   );
 }
+
 
 
