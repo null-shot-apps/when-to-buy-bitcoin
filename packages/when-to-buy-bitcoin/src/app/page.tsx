@@ -91,12 +91,13 @@ export default function Landing() {
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [searchDate, setSearchDate] = useState('');
   const [searchResult, setSearchResult] = useState<{ date: string; price: number } | null>(null);
+  const [compareDate1, setCompareDate1] = useState('');
+  const [compareDate2, setCompareDate2] = useState('');
+  const [compareResult, setCompareResult] = useState<{ date1: string; price1: number; date2: string; price2: number; diff: number } | null>(null);
 
-  const handleSearch = () => {
-    if (!searchDate) return;
-    
+  const getPriceForDate = (dateStr: string): { date: string; price: number } => {
     // Parse European date format (DD/MM/YYYY)
-    const dateMatch = searchDate.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    const dateMatch = dateStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
     
     if (dateMatch) {
       const day = parseInt(dateMatch[1]);
@@ -108,34 +109,52 @@ export default function Landing() {
       
       if (!yearData) {
         if (year < 2009) {
-          setSearchResult({ date: searchDate, price: -1 }); // Special code for pre-Bitcoin
+          return { date: dateStr, price: -1 }; // Special code for pre-Bitcoin
         } else {
-          setSearchResult({ date: searchDate, price: 0 });
+          return { date: dateStr, price: 0 };
         }
-        return;
       }
       
       // For now, return approximate price from that year
-      // In a real app, you'd have daily data
       const avgPrice = yearData.dates.reduce((sum, d) => sum + d.price, 0) / yearData.dates.length;
-      setSearchResult({ date: searchDate, price: avgPrice });
-      return;
+      return { date: dateStr, price: avgPrice };
     }
     
-    // Fallback to old search method
-    const searchLower = searchDate.toLowerCase();
+    return { date: dateStr, price: 0 };
+  };
+
+  const handleSearch = () => {
+    if (!searchDate) return;
+    const result = getPriceForDate(searchDate);
+    setSearchResult(result);
+  };
+
+  const handleCompare = () => {
+    if (!compareDate1 || !compareDate2) return;
     
-    for (const yearData of bitcoinData) {
-      for (const dateInfo of yearData.dates) {
-        const fullDate = `${dateInfo.date} ${yearData.year}`.toLowerCase();
-        if (fullDate.includes(searchLower) || searchLower.includes(dateInfo.date.toLowerCase())) {
-          setSearchResult({ date: `${dateInfo.date}, ${yearData.year}`, price: dateInfo.price });
-          return;
-        }
-      }
+    const result1 = getPriceForDate(compareDate1);
+    const result2 = getPriceForDate(compareDate2);
+    
+    if (result1.price > 0 && result2.price > 0) {
+      const diff = result2.price - result1.price;
+      const percentDiff = ((diff / result1.price) * 100);
+      
+      setCompareResult({
+        date1: result1.date,
+        price1: result1.price,
+        date2: result2.date,
+        price2: result2.price,
+        diff: percentDiff
+      });
+    } else {
+      setCompareResult({
+        date1: result1.date,
+        price1: result1.price,
+        date2: result2.date,
+        price2: result2.price,
+        diff: 0
+      });
     }
-    
-    setSearchResult({ date: searchDate, price: 0 });
   };
 
   return (
@@ -151,44 +170,124 @@ export default function Landing() {
           </p>
           
           {/* Search Bar */}
-          <div className="mt-6 max-w-md mx-auto">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={searchDate}
-                onChange={(e) => setSearchDate(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                placeholder="Search date (DD/MM/YYYY, e.g., 15/03/2022)"
-                className="flex-1 px-4 py-2 border border-gray-200 text-sm font-light focus:outline-none focus:border-gray-900 transition-colors"
-              />
-              <button
-                onClick={handleSearch}
-                className="px-6 py-2 border border-gray-900 bg-gray-900 text-white text-sm font-light hover:bg-gray-800 transition-colors"
-              >
-                Search
-              </button>
-            </div>
-            
-            {/* Search Result */}
-            {searchResult && (
-              <div className="mt-3 p-3 border border-gray-200 bg-gray-50">
-                <div className="text-sm font-light text-gray-900">
-                  {searchResult.date}
+          <div className="mt-6 max-w-4xl mx-auto space-y-4">
+            {/* Single Date Search */}
+            <div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={searchDate}
+                  onChange={(e) => setSearchDate(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  placeholder="Search date (DD/MM/YYYY, e.g., 15/03/2022)"
+                  className="flex-1 px-4 py-2 border border-gray-200 text-sm font-light focus:outline-none focus:border-gray-900 transition-colors"
+                />
+                <button
+                  onClick={handleSearch}
+                  className="px-6 py-2 border border-gray-900 bg-gray-900 text-white text-sm font-light hover:bg-gray-800 transition-colors"
+                >
+                  Search
+                </button>
+              </div>
+              
+              {/* Search Result */}
+              {searchResult && (
+                <div className="mt-3 p-3 border border-gray-200 bg-gray-50">
+                  <div className="text-sm font-light text-gray-900">
+                    {searchResult.date}
+                  </div>
+                  <div className="text-lg font-light text-gray-900 mt-1">
+                    {searchResult.price === -1 ? (
+                      'Bitcoin didn\'t exist yet on this date'
+                    ) : searchResult.price > 0 ? (
+                      `~${searchResult.price.toLocaleString('en-US', {
+                        minimumFractionDigits: searchResult.price < 1 ? 5 : 2,
+                        maximumFractionDigits: searchResult.price < 1 ? 5 : 2,
+                      })} USD (approximate)`
+                    ) : (
+                      'Date not found in dataset'
+                    )}
+                  </div>
                 </div>
-                <div className="text-lg font-light text-gray-900 mt-1">
-                  {searchResult.price === -1 ? (
-                    'Bitcoin didn\'t exist yet on this date'
-                  ) : searchResult.price > 0 ? (
-                    `~${searchResult.price.toLocaleString('en-US', {
-                      minimumFractionDigits: searchResult.price < 1 ? 5 : 2,
-                      maximumFractionDigits: searchResult.price < 1 ? 5 : 2,
-                    })} USD (approximate)`
-                  ) : (
-                    'Date not found in dataset'
+              )}
+            </div>
+
+            {/* Compare Two Dates */}
+            <div className="pt-4 border-t border-gray-200">
+              <div className="text-sm font-light text-gray-600 mb-2">Compare two dates</div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={compareDate1}
+                  onChange={(e) => setCompareDate1(e.target.value)}
+                  placeholder="First date (DD/MM/YYYY)"
+                  className="flex-1 px-4 py-2 border border-gray-200 text-sm font-light focus:outline-none focus:border-gray-900 transition-colors"
+                />
+                <input
+                  type="text"
+                  value={compareDate2}
+                  onChange={(e) => setCompareDate2(e.target.value)}
+                  placeholder="Second date (DD/MM/YYYY)"
+                  className="flex-1 px-4 py-2 border border-gray-200 text-sm font-light focus:outline-none focus:border-gray-900 transition-colors"
+                />
+                <button
+                  onClick={handleCompare}
+                  className="px-6 py-2 border border-gray-900 bg-gray-900 text-white text-sm font-light hover:bg-gray-800 transition-colors"
+                >
+                  Compare
+                </button>
+              </div>
+              
+              {/* Compare Result */}
+              {compareResult && (
+                <div className="mt-3 p-4 border border-gray-200 bg-gray-50">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <div className="text-xs font-light text-gray-500 mb-1">First Date</div>
+                      <div className="text-sm font-light text-gray-900">{compareResult.date1}</div>
+                      <div className="text-lg font-light text-gray-900 mt-1">
+                        {compareResult.price1 > 0 ? (
+                          `~${compareResult.price1.toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}`
+                        ) : (
+                          'N/A'
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs font-light text-gray-500 mb-1">Second Date</div>
+                      <div className="text-sm font-light text-gray-900">{compareResult.date2}</div>
+                      <div className="text-lg font-light text-gray-900 mt-1">
+                        {compareResult.price2 > 0 ? (
+                          `~${compareResult.price2.toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}`
+                        ) : (
+                          'N/A'
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  {compareResult.price1 > 0 && compareResult.price2 > 0 && (
+                    <div className="mt-3 pt-3 border-t border-gray-200">
+                      <div className="text-xs font-light text-gray-500 mb-1">Price Change</div>
+                      <div className={`text-xl font-light ${compareResult.diff >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {compareResult.diff >= 0 ? '+' : ''}{compareResult.diff.toFixed(2)}%
+                      </div>
+                      <div className="text-sm font-light text-gray-600 mt-1">
+                        ${Math.abs(compareResult.price2 - compareResult.price1).toLocaleString('en-US', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })} {compareResult.diff >= 0 ? 'increase' : 'decrease'}
+                      </div>
+                    </div>
                   )}
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -264,6 +363,9 @@ export default function Landing() {
     </div>
   );
 }
+
+
+
 
 
 
