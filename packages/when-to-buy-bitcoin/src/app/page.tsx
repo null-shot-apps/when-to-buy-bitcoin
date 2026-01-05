@@ -107,80 +107,66 @@ export default function Landing() {
       {/* Main Content */}
       <main className="px-6 pb-24">
         <div className="max-w-4xl mx-auto">
-          {/* Year Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
+          {/* Year Grid with Inline Details */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {bitcoinData.map((yearData) => (
-              <button
-                key={yearData.year}
-                onClick={() => setSelectedYear(selectedYear === yearData.year ? null : yearData.year)}
-                className={`py-6 px-4 border transition-all duration-200 ${
-                  selectedYear === yearData.year
-                    ? 'border-gray-900 bg-gray-50'
-                    : 'border-gray-200 hover:border-gray-400'
-                }`}
-              >
-                <span className="text-2xl font-light text-gray-900">{yearData.year}</span>
-              </button>
+              <div key={yearData.year} className="col-span-2 md:col-span-4">
+                <button
+                  onClick={() => setSelectedYear(selectedYear === yearData.year ? null : yearData.year)}
+                  className={`w-full py-6 px-4 border transition-all duration-200 ${
+                    selectedYear === yearData.year
+                      ? 'border-gray-900 bg-gray-50'
+                      : 'border-gray-200 hover:border-gray-400'
+                  }`}
+                >
+                  <span className="text-2xl font-light text-gray-900">{yearData.year}</span>
+                </button>
+                
+                {/* Inline Details */}
+                {selectedYear === yearData.year && (
+                  <div className="mt-4 mb-8 animate-fadeIn">
+                    <div className="space-y-4">
+                      {yearData.dates.map((dateInfo, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between py-6 px-6 border border-gray-200 bg-white"
+                        >
+                          <div className="flex items-center gap-6">
+                            <span className="text-3xl font-light text-gray-300 w-8">
+                              {index + 1}
+                            </span>
+                            <div>
+                              <div className="text-xl font-light text-gray-900">
+                                {dateInfo.date}
+                              </div>
+                              <div className="text-xs text-gray-500 font-light">
+                                {yearData.year}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-2xl font-light text-gray-900">
+                              ${dateInfo.price.toLocaleString('en-US', {
+                                minimumFractionDigits: dateInfo.price < 1 ? 5 : 2,
+                                maximumFractionDigits: dateInfo.price < 1 ? 5 : 2,
+                              })}
+                            </div>
+                            <div className="text-xs text-gray-500 font-light">
+                              USD
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             ))}
           </div>
-
-          {/* Selected Year Details */}
-          {selectedYear && (
-            <div className="animate-fadeIn">
-              <div className="border-t border-gray-200 pt-12">
-                <h2 className="text-3xl font-light text-gray-900 mb-12 text-center">
-                  Top 3 Dates in {selectedYear}
-                </h2>
-                <div className="space-y-8">
-                  {bitcoinData
-                    .find((y) => y.year === selectedYear)
-                    ?.dates.map((dateInfo, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between py-8 px-8 border border-gray-200 hover:border-gray-300 transition-colors"
-                      >
-                        <div className="flex items-center gap-8">
-                          <span className="text-5xl font-light text-gray-300 w-12">
-                            {index + 1}
-                          </span>
-                          <div>
-                            <div className="text-2xl font-light text-gray-900 mb-1">
-                              {dateInfo.date}
-                            </div>
-                            <div className="text-sm text-gray-500 font-light">
-                              {selectedYear}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-3xl font-light text-gray-900">
-                            ${dateInfo.price.toLocaleString('en-US', {
-                              minimumFractionDigits: dateInfo.price < 1 ? 5 : 2,
-                              maximumFractionDigits: dateInfo.price < 1 ? 5 : 2,
-                            })}
-                          </div>
-                          <div className="text-sm text-gray-500 font-light mt-1">
-                            USD
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Empty State */}
-          {!selectedYear && (
-            <div className="text-center py-20">
-              <p className="text-xl text-gray-400 font-light">
-                Select a year to view the best buying dates
-              </p>
-            </div>
-          )}
         </div>
       </main>
     </div>
   );
 }
+
 
