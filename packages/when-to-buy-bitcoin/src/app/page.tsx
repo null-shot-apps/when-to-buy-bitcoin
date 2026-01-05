@@ -95,8 +95,34 @@ export default function Landing() {
   const handleSearch = () => {
     if (!searchDate) return;
     
-    // Simple search - in a real app, you'd query an API
-    // For demo, we'll search through our existing data
+    // Parse European date format (DD/MM/YYYY)
+    const dateMatch = searchDate.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    
+    if (dateMatch) {
+      const day = parseInt(dateMatch[1]);
+      const month = parseInt(dateMatch[2]);
+      const year = parseInt(dateMatch[3]);
+      
+      // Find the year in our dataset
+      const yearData = bitcoinData.find(y => y.year === year);
+      
+      if (!yearData) {
+        if (year < 2009) {
+          setSearchResult({ date: searchDate, price: -1 }); // Special code for pre-Bitcoin
+        } else {
+          setSearchResult({ date: searchDate, price: 0 });
+        }
+        return;
+      }
+      
+      // For now, return approximate price from that year
+      // In a real app, you'd have daily data
+      const avgPrice = yearData.dates.reduce((sum, d) => sum + d.price, 0) / yearData.dates.length;
+      setSearchResult({ date: searchDate, price: avgPrice });
+      return;
+    }
+    
+    // Fallback to old search method
     const searchLower = searchDate.toLowerCase();
     
     for (const yearData of bitcoinData) {
@@ -132,7 +158,7 @@ export default function Landing() {
                 value={searchDate}
                 onChange={(e) => setSearchDate(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                placeholder="Search date (e.g., Jan 1 2020)"
+                placeholder="Search date (DD/MM/YYYY, e.g., 15/03/2022)"
                 className="flex-1 px-4 py-2 border border-gray-200 text-sm font-light focus:outline-none focus:border-gray-900 transition-colors"
               />
               <button
@@ -150,11 +176,13 @@ export default function Landing() {
                   {searchResult.date}
                 </div>
                 <div className="text-lg font-light text-gray-900 mt-1">
-                  {searchResult.price > 0 ? (
-                    `${searchResult.price.toLocaleString('en-US', {
+                  {searchResult.price === -1 ? (
+                    'Bitcoin didn\'t exist yet on this date'
+                  ) : searchResult.price > 0 ? (
+                    `~${searchResult.price.toLocaleString('en-US', {
                       minimumFractionDigits: searchResult.price < 1 ? 5 : 2,
                       maximumFractionDigits: searchResult.price < 1 ? 5 : 2,
-                    })} USD`
+                    })} USD (approximate)`
                   ) : (
                     'Date not found in dataset'
                   )}
@@ -236,6 +264,9 @@ export default function Landing() {
     </div>
   );
 }
+
+
+
 
 
 
