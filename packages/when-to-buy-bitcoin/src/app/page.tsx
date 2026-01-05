@@ -89,6 +89,28 @@ const bitcoinData = [
 
 export default function Landing() {
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [searchDate, setSearchDate] = useState('');
+  const [searchResult, setSearchResult] = useState<{ date: string; price: number } | null>(null);
+
+  const handleSearch = () => {
+    if (!searchDate) return;
+    
+    // Simple search - in a real app, you'd query an API
+    // For demo, we'll search through our existing data
+    const searchLower = searchDate.toLowerCase();
+    
+    for (const yearData of bitcoinData) {
+      for (const dateInfo of yearData.dates) {
+        const fullDate = `${dateInfo.date} ${yearData.year}`.toLowerCase();
+        if (fullDate.includes(searchLower) || searchLower.includes(dateInfo.date.toLowerCase())) {
+          setSearchResult({ date: `${dateInfo.date}, ${yearData.year}`, price: dateInfo.price });
+          return;
+        }
+      }
+    }
+    
+    setSearchResult({ date: searchDate, price: 0 });
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -101,6 +123,45 @@ export default function Landing() {
           <p className="text-sm text-gray-500 text-center font-light">
             Historical best buying opportunities since 2009
           </p>
+          
+          {/* Search Bar */}
+          <div className="mt-6 max-w-md mx-auto">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={searchDate}
+                onChange={(e) => setSearchDate(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                placeholder="Search date (e.g., Jan 1 2020)"
+                className="flex-1 px-4 py-2 border border-gray-200 text-sm font-light focus:outline-none focus:border-gray-900 transition-colors"
+              />
+              <button
+                onClick={handleSearch}
+                className="px-6 py-2 border border-gray-900 bg-gray-900 text-white text-sm font-light hover:bg-gray-800 transition-colors"
+              >
+                Search
+              </button>
+            </div>
+            
+            {/* Search Result */}
+            {searchResult && (
+              <div className="mt-3 p-3 border border-gray-200 bg-gray-50">
+                <div className="text-sm font-light text-gray-900">
+                  {searchResult.date}
+                </div>
+                <div className="text-lg font-light text-gray-900 mt-1">
+                  {searchResult.price > 0 ? (
+                    `${searchResult.price.toLocaleString('en-US', {
+                      minimumFractionDigits: searchResult.price < 1 ? 5 : 2,
+                      maximumFractionDigits: searchResult.price < 1 ? 5 : 2,
+                    })} USD`
+                  ) : (
+                    'Date not found in dataset'
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
@@ -175,6 +236,7 @@ export default function Landing() {
     </div>
   );
 }
+
 
 
 
