@@ -107,59 +107,66 @@ export default function Landing() {
       {/* Main Content */}
       <main className="px-4 pb-8">
         <div className="max-w-6xl mx-auto">
-          {/* Year Grid with Inline Details */}
-          <div className="grid grid-cols-4 md:grid-cols-8 gap-2">
-            {bitcoinData.map((yearData) => (
-              <div key={yearData.year} className="col-span-4 md:col-span-8">
-                <button
-                  onClick={() => setSelectedYear(selectedYear === yearData.year ? null : yearData.year)}
-                  className={`w-full py-3 px-3 border transition-all duration-200 ${
-                    selectedYear === yearData.year
-                      ? 'border-gray-900 bg-gray-50'
-                      : 'border-gray-200 hover:border-gray-400'
-                  }`}
-                >
-                  <span className="text-lg font-light text-gray-900">{yearData.year}</span>
-                </button>
+          {/* Year Grid with Inline Details - 5 per row */}
+          <div className="space-y-2">
+            {Array.from({ length: Math.ceil(bitcoinData.length / 5) }, (_, rowIndex) => (
+              <div key={rowIndex}>
+                <div className="grid grid-cols-5 gap-2">
+                  {bitcoinData.slice(rowIndex * 5, rowIndex * 5 + 5).map((yearData) => (
+                    <button
+                      key={yearData.year}
+                      onClick={() => setSelectedYear(selectedYear === yearData.year ? null : yearData.year)}
+                      className={`py-3 px-3 border transition-all duration-200 ${
+                        selectedYear === yearData.year
+                          ? 'border-gray-900 bg-gray-50'
+                          : 'border-gray-200 hover:border-gray-400'
+                      }`}
+                    >
+                      <span className="text-lg font-light text-gray-900">{yearData.year}</span>
+                    </button>
+                  ))}
+                </div>
                 
-                {/* Inline Details */}
-                {selectedYear === yearData.year && (
-                  <div className="mt-2 mb-3 animate-fadeIn">
-                    <div className="space-y-2">
-                      {yearData.dates.map((dateInfo, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between py-3 px-4 border border-gray-200 bg-white"
-                        >
-                          <div className="flex items-center gap-4">
-                            <span className="text-xl font-light text-gray-300 w-5">
-                              {index + 1}
-                            </span>
-                            <div>
-                              <div className="text-base font-light text-gray-900">
-                                {dateInfo.date}
+                {/* Inline Details for selected year in this row */}
+                {bitcoinData.slice(rowIndex * 5, rowIndex * 5 + 5).map((yearData) => (
+                  selectedYear === yearData.year && (
+                    <div key={`details-${yearData.year}`} className="mt-2 animate-fadeIn">
+                      <div className="space-y-2">
+                        {yearData.dates.map((dateInfo, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between py-3 px-4 border border-gray-200 bg-white"
+                          >
+                            <div className="flex items-center gap-4">
+                              <span className="text-xl font-light text-gray-300 w-5">
+                                {index + 1}
+                              </span>
+                              <div>
+                                <div className="text-base font-light text-gray-900">
+                                  {dateInfo.date}
+                                </div>
+                                <div className="text-xs text-gray-500 font-light">
+                                  {yearData.year}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-lg font-light text-gray-900">
+                                ${dateInfo.price.toLocaleString('en-US', {
+                                  minimumFractionDigits: dateInfo.price < 1 ? 5 : 2,
+                                  maximumFractionDigits: dateInfo.price < 1 ? 5 : 2,
+                                })}
                               </div>
                               <div className="text-xs text-gray-500 font-light">
-                                {yearData.year}
+                                USD
                               </div>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <div className="text-lg font-light text-gray-900">
-                              ${dateInfo.price.toLocaleString('en-US', {
-                                minimumFractionDigits: dateInfo.price < 1 ? 5 : 2,
-                                maximumFractionDigits: dateInfo.price < 1 ? 5 : 2,
-                              })}
-                            </div>
-                            <div className="text-xs text-gray-500 font-light">
-                              USD
-                            </div>
-                          </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )
+                ))}
               </div>
             ))}
           </div>
@@ -168,6 +175,7 @@ export default function Landing() {
     </div>
   );
 }
+
 
 
 
